@@ -1,6 +1,10 @@
 import subprocess
 import os
  
+BASE_INPUT_PATH = r"C:\Repositories\computacao-grafica\PetImages"
+BASE_OUTPUT_PATH = r"C:\Repositories\computacao-grafica\PetImagesBeautified"
+ANIMAL_DIRS = {1: "Dog", 2: "Cat"}
+
 def beautify_image(input_image, output_image, exe_path="./realesrgan-ncnn-vulkan/realesrgan-ncnn-vulkan.exe", model_name="realesrgan-x4plus"):
     command = [
         exe_path,
@@ -8,32 +12,49 @@ def beautify_image(input_image, output_image, exe_path="./realesrgan-ncnn-vulkan
         "-o", output_image,
         "-n", model_name
     ]
- 
+
     try:
-        subprocess.run(command, check=True, capture_output=True, text=True)
+        result = subprocess.run(command, check=True, capture_output=True, text=True)
         print("Imagem gerada com sucesso!")
+
         if os.path.exists(output_image):
             os.startfile(output_image)
- 
+
     except subprocess.CalledProcessError as e:
         print("Erro ao gerar imagem.")
         print("Erro:", e.stderr)
- 
+
+def get_animal_option():
+    print("Digite a opção do animal:")
+    print("1. Cachorro")
+    print("2. Gato")
+    try:
+        option = int(input(": "))
+        if option not in ANIMAL_DIRS:
+            print("Opção inválida.")
+            return None
+        return option
+    except ValueError:
+        print("Entrada inválida. Digite um número.")
+        return None
+
+def build_image_paths(animal_type, image_name):
+    input_dir = os.path.join(BASE_INPUT_PATH, ANIMAL_DIRS[animal_type])
+    output_dir = os.path.join(BASE_OUTPUT_PATH, ANIMAL_DIRS[animal_type] + "s")
+
+    input_path = os.path.join(input_dir, f"{image_name}.jpg")
+    output_path = os.path.join(output_dir, f"{image_name}_updated.jpg")
+    return input_path, output_path
+
 def main():
-    option = int(input("Digite a opção do animal.\n1. Cachorro\n2. Gato\n: "))
-    if option != 1 and option != 2:
-        return print("Opção inválida.")
- 
-    animal_name = input("Digite a o nome da imagem a ser remodelada:\n")
-    outputname = animal_name + "_updated"
- 
-    input_path = f"C:\Repositories\computacao-grafica\PetImages\Cat\{animal_name}.jpg"
-    output_path = f"C:\Repositories\computacao-grafica\PetImagesBeautified\Cats\{outputname}.jpg"
-    if option == 1:
-        input_path = f"C:\Repositories\computacao-grafica\PetImages\Dog\{animal_name}.jpg"
-        output_path = f"C:\Repositories\computacao-grafica\PetImagesBeautified\Dogs\{outputname}.jpg"
- 
+    option = get_animal_option()
+    if option is None:
+        return
+
+    image_name = input("Digite o nome da imagem a ser remodelada:\n").strip()
+    input_path, output_path = build_image_paths(option, image_name)
+
     beautify_image(input_path, output_path)
- 
+
 if __name__ == "__main__":
     main()
